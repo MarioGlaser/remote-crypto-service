@@ -1,0 +1,26 @@
+spring:
+  profiles:
+    active: development
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:54320/masterarbeit?currentSchema=Masterarbeit
+    username: postgres
+    password: null
+  jpa:
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    generate-ddl: false
+    hibernate:
+      ddl-auto: update
+logging:
+  level:
+    ROOT: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.boot.autoconfigure: DEBUG
+server:
+  error:
+    include-stacktrace: never
+  port: 9200
+  servlet:
+    context-path: /secure-hsm-registration

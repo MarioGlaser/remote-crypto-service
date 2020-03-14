@@ -1,0 +1,13 @@
+package at.ac.fernfh.remotecrypto.model;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class RemoteCryptoModelApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(RemoteCryptoModelApplication.class, args);
+    }
+
+}

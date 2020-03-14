@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: development
+server:
+  error:
+    include-stacktrace: never
+  port: 9400
+  servlet:
+    context-path: /secure-hsm-data
+logging: 
+  level: 
+    ROOT: DEBUG
