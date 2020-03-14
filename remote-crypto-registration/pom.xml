@@ -16,7 +16,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>at.ac.fernfh.remotecrypto</groupId>
-			<artifactId>model</artifactId>
+			<artifactId>remote-crypto-model</artifactId>
 			<version>0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
