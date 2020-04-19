@@ -20,9 +20,15 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
-import at.ac.fernfh.remotecrypto.key.api.WrappingResult;
+import at.ac.fernfh.remotecrypto.key.api.KeyInstallationResult;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Software (KeyStore) implementation of the <code>KeyCryptoProvider</code>.
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
 @Slf4j
 public final class SoftwareCryptoProvider implements KeyCryptoProvider {
 
@@ -30,9 +36,9 @@ public final class SoftwareCryptoProvider implements KeyCryptoProvider {
 
 	private Map<String, Triple> keyMap;
 
-	private KeyStore secretKeyStore;
-
 	private String path = "./target/secret-key-store.jks";
+
+	private KeyStore secretKeyStore;
 
 	public SoftwareCryptoProvider(Map<String, Triple> keyMap) {
 		log.info("Create new Software based CryptoService");
@@ -52,35 +58,15 @@ public final class SoftwareCryptoProvider implements KeyCryptoProvider {
 		}
 	}
 
-	private byte[] wrapSecretKey(PublicKey publicKey, SecretKey secretKey)
-			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException {
+	@Override
+	public KeyInstallationResult getWrappingKey(String alias) {
 
-		final Cipher cipher = Cipher.getInstance(PADDING);
-		cipher.init(Cipher.WRAP_MODE, publicKey);
-
-		return cipher.wrap(secretKey);
-	}
-
-	private SecretKey createSecretKey() {
-		KeyGenerator keyGen;
-		try {
-			keyGen = KeyGenerator.getInstance("AES");
-		} catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException(e);
-		}
-
-		keyGen.init(256);
-		return keyGen.generateKey();
-	}
-
-	private byte[] getEncrypteTestData(SecretKey secretKey, String testData) throws GeneralSecurityException {
-		final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-		cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, new byte[12]));
-		return cipher.doFinal(testData.getBytes(StandardCharsets.UTF_8));
+		final Triple triple = keyMap.get(alias);
+		return new KeyInstallationResult(triple.getWrappedSecretKey(), triple.getEncryptedTestData());
 	}
 
 	@Override
-	public void addPublicKey(String alias, PublicKey publicKey, String testData) throws GeneralSecurityException {
+	public void installPublicKey(String alias, PublicKey publicKey, String testData) throws GeneralSecurityException {
 
 		final SecretKey secretKey;
 		if (keyMap.containsKey(alias)) {
@@ -112,17 +98,37 @@ public final class SoftwareCryptoProvider implements KeyCryptoProvider {
 
 	}
 
-	@Override
-	public WrappingResult getWrappingKey(String alias) {
+	private SecretKey createSecretKey() {
+		KeyGenerator keyGen;
+		try {
+			keyGen = KeyGenerator.getInstance("AES");
+		} catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException(e);
+		}
 
-		final Triple triple = keyMap.get(alias);
-		return new WrappingResult(triple.getWrappedSecretKey(), triple.getEncryptedTestData());
+		keyGen.init(256);
+		return keyGen.generateKey();
+	}
+
+	private byte[] getEncrypteTestData(SecretKey secretKey, String testData) throws GeneralSecurityException {
+		final Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+		cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, new byte[12]));
+		return cipher.doFinal(testData.getBytes(StandardCharsets.UTF_8));
+	}
+
+	private byte[] wrapSecretKey(PublicKey publicKey, SecretKey secretKey)
+			throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException {
+
+		final Cipher cipher = Cipher.getInstance(PADDING);
+		cipher.init(Cipher.WRAP_MODE, publicKey);
+
+		return cipher.wrap(secretKey);
 	}
 
 	public static class Triple {
+		private byte[] encryptedTestData;
 		private PublicKey publicKey;
 		private byte[] wrappedSecretKey;
-		private byte[] encryptedTestData;
 
 		public Triple(PublicKey publicKey, byte[] wrappedSecretKey, byte[] encryptedTestData) {
 			super();
@@ -131,16 +137,16 @@ public final class SoftwareCryptoProvider implements KeyCryptoProvider {
 			this.encryptedTestData = encryptedTestData;
 		}
 
+		public byte[] getEncryptedTestData() {
+			return encryptedTestData;
+		}
+
 		public PublicKey getPublicKey() {
 			return publicKey;
 		}
 
 		public byte[] getWrappedSecretKey() {
 			return wrappedSecretKey;
-		}
-
-		public byte[] getEncryptedTestData() {
-			return encryptedTestData;
 		}
 	}
 

@@ -14,24 +14,39 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import at.ac.fernfh.remotecrypto.key.service.SecHSMService;
+import at.ac.fernfh.remotecrypto.key.service.KeyInstallationService;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * <b>Key</b> Installation Controller.
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
 @RestController
 @RequestMapping("/service")
 @Slf4j
-public class SecHsmServiceController {
+public class KeyInstallationController {
 
 
 	@Autowired
-	private SecHSMService secHSMService;
+	private KeyInstallationService keyInstallationService;
 	
-	// TODO change to JWT
+	/**
+	 * <b>Key</b> installation request with the passed parameters.
+	 *  
+	 * @param wrappingRequest the 
+	 * @param principal authentication token.
+	 * 
+	 * @return the key installation response, with the wrapped private key to install.
+	 * 
+	 * @throws GeneralSecurityException
+	 */
 	@PostMapping
-	public WrappingResult getEncryptionKey(@RequestBody WrappingRequest wrappingRequest, Principal principal) throws GeneralSecurityException {
-		log.info("Get enrypted secret key");
+	public KeyInstallationResult install(@RequestBody KeyInstallationRequest wrappingRequest, Principal principal) throws GeneralSecurityException {
+		log.info("Install secret key request");
 		
-		return secHSMService.getEncryptionKey(wrappingRequest.getPublicKey(), principal);
+		return keyInstallationService.getEncryptionKey(wrappingRequest.getPublicKey(), principal);
 		
 //		PublicKey parsedPublicKey = SecHSMUtil.parsePublicKey(publicKey);
 //		CryptoService cryptoService = new CryptoService(parsedPublicKey);

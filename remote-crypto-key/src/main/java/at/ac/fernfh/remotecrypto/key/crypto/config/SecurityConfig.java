@@ -1,4 +1,4 @@
-package at.ac.fernfh.remotecrypto.registration.configuration;
+package at.ac.fernfh.remotecrypto.key.crypto.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +11,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 
 /**
- * OpenID bzw. OAuth 2.0 configuration of the <b>Registration</b> component.
+ * OpenID bzw. OAuth 2.0 configuration of the <b>Key Installation</b> component.
  *  
  * @author Mario Glaser
  * @since 1.0

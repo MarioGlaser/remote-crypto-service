@@ -15,15 +15,23 @@ import java.util.Enumeration;
 import lombok.extern.slf4j.Slf4j;
 import sun.security.pkcs11.SunPKCS11;
 
+/**
+ * PKCS#11 implementation of the <code>KeyCryptoProvider</code>.
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
+@SuppressWarnings("restriction")
 @Slf4j
 public class PKCS11CryptoProvider extends KeyStoryCryptoProvider implements KeyCryptoProvider {
-
-	private String pin;
 
 	private String configurationPath;
 
 	private KeyStore keyStore;
 
+	private String pin = "1234";
+
+	@SuppressWarnings("resource")
 	public PKCS11CryptoProvider() {
 
 		File tmpConfigFile;
@@ -49,7 +57,7 @@ public class PKCS11CryptoProvider extends KeyStoryCryptoProvider implements KeyC
 			Provider provider = new SunPKCS11(tmpConfigFile.getAbsolutePath());
 			Security.addProvider(provider);
 			keyStore = KeyStore.getInstance("PKCS11", provider);
-			keyStore.load(null, "1234".toCharArray());
+			keyStore.load(null, pin.toCharArray());
 		} catch (GeneralSecurityException | IOException e) {
 			throw new IllegalStateException(e);
 		}

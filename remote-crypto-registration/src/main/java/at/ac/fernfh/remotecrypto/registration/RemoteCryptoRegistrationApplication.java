@@ -7,6 +7,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+/**
+ * Sprint Boot startup class for the <code>Registration</code> service.
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
 @EnableJpaRepositories("at.ac.fernfh.remotecrypto.model")
 @EntityScan("at.ac.fernfh.remotecrypto.model")
 @EnableSwagger2

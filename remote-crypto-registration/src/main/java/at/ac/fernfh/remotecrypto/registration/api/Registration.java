@@ -3,7 +3,7 @@ package at.ac.fernfh.remotecrypto.registration.api;
 import lombok.Data;
 
 /**
- * Domain-Klasse die eine <b>Registrierung</b> des Benutzers repräsentiert.
+ * Domain-Class of the <b>Registration</b> - represents a user.
  *  
  * @author Mario Glaser
  * @since 1.0
@@ -11,9 +11,9 @@ import lombok.Data;
 @Data
 public class Registration {
 
-	/** Öffentlicher Schlüssel der Registrierung. */
+	/** Public key of the registration. */
 	private byte[] publicKey;
 		
-	/** Geräte-Informationen. */
+	/** Device informations. */
 	private String deviceInfo;
 }

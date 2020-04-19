@@ -15,6 +15,12 @@ import java.security.GeneralSecurityException;
 import java.security.PublicKey;
 import java.util.Base64;
 
+/**
+ * Service implementation of the <b>Registration</b> component.
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
 @Service
 @Slf4j
 public class RegistrationService {
@@ -22,6 +28,14 @@ public class RegistrationService {
 	@Autowired
 	private UserRepository userRepository;
 
+	/**
+	 * Register a new user with the passed parameters.
+	 * 
+	 * @param registration the registration parameter of the user.
+	 * @param jwtAuthenticationToken the authentication token.
+	 * 
+	 * @throws GeneralSecurityException in case the registration fail.
+	 */
 	@Transactional
 	public void registerAppForUser(Registration registration, JwtAuthenticationToken jwtAuthenticationToken)
 			throws GeneralSecurityException {

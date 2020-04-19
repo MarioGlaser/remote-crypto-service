@@ -22,8 +22,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
 @RestController
-@RequestMapping("/upload")
+@RequestMapping("/data")
 @Slf4j
 public class SimpleDataController {
 

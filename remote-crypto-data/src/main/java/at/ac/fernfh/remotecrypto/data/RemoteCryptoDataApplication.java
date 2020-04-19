@@ -7,6 +7,12 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+/**
+ * Sprint Boot startup class for the <code>Data</code> service.
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
 @EnableSwagger2
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})

@@ -19,7 +19,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import at.ac.fernfh.remotecrypto.key.api.WrappingResult;
+import at.ac.fernfh.remotecrypto.key.api.KeyInstallationResult;
 import at.ac.fernfh.remotecrypto.key.crypto.KeyCryptoProvider;
 import at.ac.fernfh.remotecrypto.key.crypto.PKCS11CryptoProvider;
 import at.ac.fernfh.remotecrypto.key.crypto.SoftwareCryptoProvider;
@@ -28,17 +28,85 @@ import at.ac.fernfh.remotecrypto.model.repository.UserRepository;
 import at.ac.fernfh.remotecrypto.util.SecHSMUtil;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Service implementation of the <b>Key Installation</b> component.
+ * 
+ * @author Mario Glaser
+ * @since 1.0
+ */
 @Service
 @Slf4j
-public class SecHSMService {
+public class KeyInstallationService {
+
+	private KeyCryptoProvider keyCryptoProvider;
 
 	@Autowired
 	private UserRepository userRepository;
 
-	private KeyCryptoProvider keyCryptoProvider;
+	public KeyInstallationService() {
+		log.debug("Create new object.");
+	}
 
-	public SecHSMService() {
-		log.debug("Create new Object");
+	/**
+	 * Install the given public key for the authentication user.
+	 * 
+	 * @param publicKey the public key of the user.
+	 * @param principal the authentication token
+	 * 
+	 * @return the result of the installation request.
+	 * 
+	 * @throws GeneralSecurityException in case the installation fail.
+	 */
+	public KeyInstallationResult getEncryptionKey(byte[] publicKey, Principal principal) throws GeneralSecurityException {
+		log.info("Get encryption key for <{}>", principal.getName());
+		if (principal instanceof JwtAuthenticationToken) {
+			final JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) principal;
+			jwtAuthenticationToken.getName();
+			
+			PublicKey parsedPublicKey = SecHSMUtil.parsePublicKey(publicKey);
+
+//			final List<RegisteredUser> allRegisteredUsers = userRepository.findAll();
+	//
+//			for (RegisteredUser registeredUser : allRegisteredUsers) {
+//				log.info("Found the following user <{}> with the public key (hash) <{}>", registeredUser.getEMail(),
+//						registeredUser.getPulbicKeyHash());
+//			}
+
+			// search public key
+			String publicKeyHash = Hex.toHexString(SecHSMUtil.getPublicKeyHash(parsedPublicKey));
+			final List<RegisteredUser> registeredUsers = userRepository.findByPulbicKeyHash(publicKeyHash);
+
+			final RegisteredUser registeredUser;
+			if (registeredUsers.size() == 0) {
+				throw new IllegalStateException("No user with registered public key found (hash) " + publicKeyHash);
+			} else if (registeredUsers.size() > 1) {
+				throw new IllegalStateException(
+						"More than one user with registered public key found (hash) " + publicKeyHash);
+			} else {
+				registeredUser = registeredUsers.get(0);
+			}
+
+			// create and encrypt AES Key
+			
+			final String deviceInfo = userRepository.findBySubject(registeredUser.getSubject()).get(0).getDeviceInfo();
+			keyCryptoProvider.installPublicKey(registeredUser.getSubject(), parsedPublicKey, deviceInfo);
+
+			final KeyInstallationResult wrappingResult = keyCryptoProvider.getWrappingKey(jwtAuthenticationToken.getToken().getSubject());
+
+			// update registered user
+
+			registeredUser.setEncryptedTestData(Hex.toHexString(wrappingResult.getEncryptedTestData()));
+			registeredUser.setEncryptedWrappingKey(Hex.toHexString(wrappingResult.getWrappedSecretKey()));
+
+			userRepository.saveAndFlush(registeredUser);
+
+			return wrappingResult;
+			
+		} else {
+			throw new InsufficientAuthenticationException("Authentication token is unkown: " + principal.getClass().getName());
+		}
+		
+
 	}
 
 	@PostConstruct
@@ -71,58 +139,6 @@ public class SecHSMService {
 		}
 
 		keyCryptoProvider = new PKCS11CryptoProvider(); //new SoftwareCryptoProvider(registeredUsers);
-	}
-
-	public WrappingResult getEncryptionKey(byte[] publicKey, Principal principal) throws GeneralSecurityException {
-		log.info("Get encryption key for <{}>", principal.getName());
-		if (principal instanceof JwtAuthenticationToken) {
-			final JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) principal;
-			jwtAuthenticationToken.getName();
-			
-			PublicKey parsedPublicKey = SecHSMUtil.parsePublicKey(publicKey);
-
-//			final List<RegisteredUser> allRegisteredUsers = userRepository.findAll();
-	//
-//			for (RegisteredUser registeredUser : allRegisteredUsers) {
-//				log.info("Found the following user <{}> with the public key (hash) <{}>", registeredUser.getEMail(),
-//						registeredUser.getPulbicKeyHash());
-//			}
-
-			// search public key
-			String publicKeyHash = Hex.toHexString(SecHSMUtil.getPublicKeyHash(parsedPublicKey));
-			final List<RegisteredUser> registeredUsers = userRepository.findByPulbicKeyHash(publicKeyHash);
-
-			final RegisteredUser registeredUser;
-			if (registeredUsers.size() == 0) {
-				throw new IllegalStateException("No user with registered public key found (hash) " + publicKeyHash);
-			} else if (registeredUsers.size() > 1) {
-				throw new IllegalStateException(
-						"More than one user with registered public key found (hash) " + publicKeyHash);
-			} else {
-				registeredUser = registeredUsers.get(0);
-			}
-
-			// create and encrypt AES Key
-			
-			final String deviceInfo = userRepository.findBySubject(registeredUser.getSubject()).get(0).getDeviceInfo();
-			keyCryptoProvider.addPublicKey(registeredUser.getSubject(), parsedPublicKey, deviceInfo);
-
-			final WrappingResult wrappingResult = keyCryptoProvider.getWrappingKey(jwtAuthenticationToken.getToken().getSubject());
-
-			// update registered user
-
-			registeredUser.setEncryptedTestData(Hex.toHexString(wrappingResult.getEncryptedTestData()));
-			registeredUser.setEncryptedWrappingKey(Hex.toHexString(wrappingResult.getWrappedSecretKey()));
-
-			userRepository.saveAndFlush(registeredUser);
-
-			return wrappingResult;
-			
-		} else {
-			throw new InsufficientAuthenticationException("Authentication token is unkown: " + principal.getClass().getName());
-		}
-		
-
 	}
 
 	@ExceptionHandler
