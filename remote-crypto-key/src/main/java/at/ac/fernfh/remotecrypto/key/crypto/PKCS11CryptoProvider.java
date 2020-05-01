@@ -12,6 +12,11 @@ import java.security.Provider;
 import java.security.Security;
 import java.util.Enumeration;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import at.ac.fernfh.remotecrypto.key.crypto.config.KeyInstallationConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import sun.security.pkcs11.SunPKCS11;
 
@@ -23,6 +28,7 @@ import sun.security.pkcs11.SunPKCS11;
  */
 @SuppressWarnings("restriction")
 @Slf4j
+@Component
 public class PKCS11CryptoProvider extends KeyStoryCryptoProvider implements KeyCryptoProvider {
 
 	private String configurationPath;
@@ -31,9 +37,22 @@ public class PKCS11CryptoProvider extends KeyStoryCryptoProvider implements KeyC
 
 	private String pin = "1234";
 
+	@Autowired
+	private KeyInstallationConfiguration keyInstallConfiguration;
+
 	@SuppressWarnings("resource")
 	public PKCS11CryptoProvider() {
 
+
+	}
+
+	@Override
+	KeyStore getKeyStore() {
+		return keyStore;
+	}
+
+	@Override
+	public void initialize() {
 		File tmpConfigFile;
 		try {
 			tmpConfigFile = File.createTempFile("pkcs11-", "conf");
@@ -49,7 +68,7 @@ public class PKCS11CryptoProvider extends KeyStoryCryptoProvider implements KeyC
 		}
 		configWriter.println("name=secure-hsm");
 		configWriter.println("library=/usr/local/lib/softhsm/libsofthsm2.so");
-		configWriter.println("slotListIndex=1");
+		configWriter.println("slotListIndex=" + keyInstallConfiguration.getSlot());
 //		configWriter.println("slotListIndex=0");
 		configWriter.println("showInfo=true");
 
@@ -57,7 +76,7 @@ public class PKCS11CryptoProvider extends KeyStoryCryptoProvider implements KeyC
 			Provider provider = new SunPKCS11(tmpConfigFile.getAbsolutePath());
 			Security.addProvider(provider);
 			keyStore = KeyStore.getInstance("PKCS11", provider);
-			keyStore.load(null, pin.toCharArray());
+			keyStore.load(null, keyInstallConfiguration.getPassword().toCharArray());
 		} catch (GeneralSecurityException | IOException e) {
 			throw new IllegalStateException(e);
 		}
@@ -72,10 +91,6 @@ public class PKCS11CryptoProvider extends KeyStoryCryptoProvider implements KeyC
 		while (aliases.hasMoreElements()) {
 			log.info("Alias: " + aliases.nextElement());
 		}
-	}
-
-	@Override
-	KeyStore getKeyStore() {
-		return keyStore;
+		
 	}
 }

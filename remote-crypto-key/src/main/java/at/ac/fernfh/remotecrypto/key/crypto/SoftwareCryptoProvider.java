@@ -150,4 +150,10 @@ public final class SoftwareCryptoProvider implements KeyCryptoProvider {
 		}
 	}
 
+	@Override
+	public void initialize() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

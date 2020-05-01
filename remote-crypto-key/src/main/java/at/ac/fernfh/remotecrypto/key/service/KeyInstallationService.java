@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import at.ac.fernfh.remotecrypto.key.api.KeyInstallationResult;
+import at.ac.fernfh.remotecrypto.key.crypto.CryptoProvider;
 import at.ac.fernfh.remotecrypto.key.crypto.KeyCryptoProvider;
 import at.ac.fernfh.remotecrypto.key.crypto.PKCS11CryptoProvider;
 import at.ac.fernfh.remotecrypto.key.crypto.SoftwareCryptoProvider;
@@ -38,7 +39,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class KeyInstallationService {
 
-	private KeyCryptoProvider keyCryptoProvider;
+	@Autowired
+	private CryptoProvider cryptoProvider;
+	
+	@Autowired
+	private PKCS11CryptoProvider pkcs11CryptoProvider;
 
 	@Autowired
 	private UserRepository userRepository;
@@ -89,9 +94,10 @@ public class KeyInstallationService {
 			// create and encrypt AES Key
 			
 			final String deviceInfo = userRepository.findBySubject(registeredUser.getSubject()).get(0).getDeviceInfo();
-			keyCryptoProvider.installPublicKey(registeredUser.getSubject(), parsedPublicKey, deviceInfo);
+			final KeyCryptoProvider cryptoProviderImpl = cryptoProvider.createCryptoProvider();
+			cryptoProviderImpl.installPublicKey(registeredUser.getSubject(), parsedPublicKey, deviceInfo);
 
-			final KeyInstallationResult wrappingResult = keyCryptoProvider.getWrappingKey(jwtAuthenticationToken.getToken().getSubject());
+			final KeyInstallationResult wrappingResult = cryptoProviderImpl.getWrappingKey(jwtAuthenticationToken.getToken().getSubject());
 
 			// update registered user
 
@@ -138,7 +144,7 @@ public class KeyInstallationService {
 			}
 		}
 
-		keyCryptoProvider = new PKCS11CryptoProvider(); //new SoftwareCryptoProvider(registeredUsers);
+		//keyCryptoProvider = new PKCS11CryptoProvider(); //new SoftwareCryptoProvider(registeredUsers);
 	}
 
 	@ExceptionHandler

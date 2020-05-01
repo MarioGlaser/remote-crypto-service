@@ -1,6 +1,9 @@
 spring:
   profiles:
     active: development
+  management:
+    endpoints:
+      enable-by-default: true
   datasource: 
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:54320/masterarbeit?currentSchema=Masterarbeit
@@ -22,3 +25,9 @@ server:
   port: 9300
   servlet:
     context-path: /secure-hsm-service
+remote-crypto-key:
+  slot: 1
+  password: 1234
+  authentication: 123
+  provider: PKCS11 
+  

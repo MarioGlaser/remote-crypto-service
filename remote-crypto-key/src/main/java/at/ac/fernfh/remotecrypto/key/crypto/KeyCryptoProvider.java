@@ -13,6 +13,8 @@ import at.ac.fernfh.remotecrypto.key.api.KeyInstallationResult;
  */
 public interface KeyCryptoProvider {
 
+	void initialize();
+	
 	/**
 	 * Get the key installation result for the passed user (alias).
 	 * 
