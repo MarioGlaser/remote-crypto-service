@@ -1,6 +1,14 @@
 spring:
   profiles:
     active: development
+management:
+  server:
+    port: 9401
+  endpoints:
+    enable-by-default: true
+    web:
+      exposure:
+        include: health, info
 server:
   error:
     include-stacktrace: never
@@ -9,4 +17,7 @@ server:
     context-path: /secure-hsm-data
 logging: 
   level: 
-    ROOT: DEBUG
+    ROOT: INFO
+remote-crypto-data:
+  authentication: abc
+  storage: ./target/data-storage

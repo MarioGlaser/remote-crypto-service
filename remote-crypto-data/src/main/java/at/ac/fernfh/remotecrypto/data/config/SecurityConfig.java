@@ -26,7 +26,7 @@ public class SecurityConfig {
         protected void configure(HttpSecurity http) throws Exception {
             // @formatter:off
             http
-                    .authorizeRequests().anyRequest().authenticated()
+                    .authorizeRequests().regexMatchers("secure-hsm-*").authenticated()
                     .and()
                     .oauth2Login().and()
                     .oauth2ResourceServer().jwt().jwkSetUri("https://dev-854566.okta.com/oauth2/v1/keys");
